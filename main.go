@@ -15,16 +15,16 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	// Load .env file if it exists (for development)
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using environment variables")
 	}
 
 	// Initialize database connection
 	database.ConnectDatabase()
 
 	// Auto migrate the schema
-	err = database.AutoMigrate(&models.User{})
+	err := database.AutoMigrate(&models.User{})
 	if err != nil {
 		log.Fatal("Failed to migrate database: ", err)
 	}
