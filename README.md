@@ -120,4 +120,8 @@ type User struct {
     CreatedAt time.Time `json:"created_at"`
     UpdatedAt time.Time `json:"updated_at"`
 }
+
+
+Build Command: go build -o app cmd/server/main.go
+Start Command: ./app
 ```
