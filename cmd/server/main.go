@@ -24,16 +24,18 @@ func main() {
 	db := database.GetDB()
 
 	// Auto migrate the schema
-	if err := db.AutoMigrate(&domain.User{}); err != nil {
+	if err := db.AutoMigrate(&domain.User{}, &domain.Manga{}); err != nil {
 		log.Fatal("Failed to migrate database: ", err)
 	}
 
 	// Initialize repositories
 	userRepo := repositories.NewUserRepository(db)
+	mangaRepo := repositories.NewMangaRepository(db)
 
 	// Initialize services with dependency injection
 	authService := services.NewAuthService(userRepo)
 	userService := services.NewUserService(userRepo)
+	mangaService := services.NewMangaService(mangaRepo)
 
 	// Initialize Fiber app
 	app := fiber.New(fiber.Config{
@@ -64,7 +66,7 @@ func main() {
 	}))
 
 	// Setup routes
-	routes.SetupRoutes(app, authService, userService)
+	routes.SetupRoutes(app, authService, userService, mangaService)
 
 	// Start server
 	port := ":" + cfg.Port

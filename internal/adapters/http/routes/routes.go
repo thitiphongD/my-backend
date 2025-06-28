@@ -9,10 +9,11 @@ import (
 )
 
 // SetupRoutes configures all application routes
-func SetupRoutes(app *fiber.App, authService ports.AuthService, userService ports.UserService) {
+func SetupRoutes(app *fiber.App, authService ports.AuthService, userService ports.UserService, mangaService ports.MangaService) {
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	userHandler := handlers.NewUserHandler(userService)
+	mangaHandler := handlers.NewMangaHandler(mangaService)
 
 	// Health check route
 	app.Get("/", func(c *fiber.Ctx) error {
@@ -67,4 +68,23 @@ func SetupRoutes(app *fiber.App, authService ports.AuthService, userService port
 	users.Post("/", middleware.AuthMiddleware(authService), userHandler.CreateUser)      // Protected: Create user
 	users.Put("/:id", middleware.AuthMiddleware(authService), userHandler.UpdateUser)    // Protected: Update user
 	users.Delete("/:id", middleware.AuthMiddleware(authService), userHandler.DeleteUser) // Protected: Delete user
+
+	// Manga routes
+	mangas := v1.Group("/mangas")
+	mangas.Get("/", mangaHandler.GetMangas) // Public: Get all mangas
+
+	// Manga pagination routes (must be before /:id to avoid conflicts)
+	mangas.Get("/paginated", mangaHandler.GetMangasPaginated)                    // Public: Get paginated mangas
+	mangas.Get("/active", mangaHandler.GetActiveMangas)                          // Public: Get active mangas
+	mangas.Get("/active/paginated", mangaHandler.GetActiveMangasPaginated)       // Public: Get paginated active mangas
+	mangas.Get("/price", mangaHandler.GetMangasByPriceRange)                     // Public: Get mangas by price range
+	mangas.Get("/price/paginated", mangaHandler.GetMangasByPriceRangePaginated)  // Public: Get paginated mangas by price range
+	mangas.Get("/user/:userID", mangaHandler.GetMangasByUser)                    // Public: Get mangas by user
+	mangas.Get("/user/:userID/paginated", mangaHandler.GetMangasByUserPaginated) // Public: Get paginated mangas by user
+
+	// Individual manga routes (must be after specific routes)
+	mangas.Get("/:id", mangaHandler.GetManga)                                               // Public: Get manga by ID
+	mangas.Post("/", middleware.AuthMiddleware(authService), mangaHandler.CreateManga)      // Protected: Create manga
+	mangas.Put("/:id", middleware.AuthMiddleware(authService), mangaHandler.UpdateManga)    // Protected: Update manga (ownership)
+	mangas.Delete("/:id", middleware.AuthMiddleware(authService), mangaHandler.DeleteManga) // Protected: Delete manga (ownership)
 }
