@@ -7,12 +7,12 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/thitiphongD/my-backend/internal/adapters/database"
 	"github.com/thitiphongD/my-backend/internal/adapters/database/repositories"
 	"github.com/thitiphongD/my-backend/internal/adapters/http/routes"
 	"github.com/thitiphongD/my-backend/internal/config"
 	"github.com/thitiphongD/my-backend/internal/core/domain"
 	"github.com/thitiphongD/my-backend/internal/core/services"
-	"github.com/thitiphongD/my-backend/internal/database"
 )
 
 func main() {
