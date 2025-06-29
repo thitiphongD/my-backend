@@ -1,6 +1,6 @@
 # 🏗️ My Backend - Project Overview
 
-> **Go Fiber backend with Clean Architecture pattern** - Production-ready API server
+> **Go Fiber backend with Clean Architecture pattern** - Production-ready API server with proper dependency injection
 
 ## 🚀 **Quick Start**
 
@@ -9,28 +9,69 @@
 git clone <repository>
 cd my-backend
 
+# Environment Setup
+cp .env.example .env  # Configure your environment variables
+
 # Build & Run
-go build -o bin/server ./cmd/server
-./bin/server
+go mod tidy                    # Download dependencies
+go build -o bin/server ./cmd/server  # Build to bin/ directory
+./bin/server                   # Run server
 
 # Server starts on http://localhost:8080
+# Health check: curl http://localhost:8080/
 ```
 
-## 📁 **Project Structure**
+## 📁 **Project Structure (Clean Architecture)**
 
 ```
 my-backend/
-├── cmd/server/main.go           # 🚀 Application entry point
-├── internal/core/               # 🏢 Business Logic
-│   ├── domain/                  # Entities & DTOs
-│   ├── ports/                   # Interfaces (contracts)
-│   └── services/                # Business logic implementation
-├── internal/adapters/           # 🔌 Infrastructure
-│   ├── database/repositories/   # Data access
-│   └── http/                    # HTTP handlers & routes
-└── pkg/                         # 📦 Shared utilities
-    ├── response/                # HTTP response helpers
-    └── validator/               # Input validation
+├── cmd/server/main.go           # 🚀 Application entry point & DI container
+├── bin/                         # 📦 Build artifacts
+│   ├── .gitkeep                 # Keeps directory in git
+│   └── server                   # Binary (ignored by git)
+├── internal/                    # 🏠 Private application code
+│   ├── core/                    # 🎯 Business Logic Layer
+│   │   ├── domain/              # Entities, DTOs & Value Objects
+│   │   │   ├── user.go          # User entity with business rules
+│   │   │   ├── manga.go         # Manga entity
+│   │   │   ├── auth_dto.go      # Authentication DTOs
+│   │   │   ├── manga_dto.go     # Manga DTOs
+│   │   │   └── pagination.go    # Pagination domain objects
+│   │   ├── ports/               # 🔌 Interfaces (Contracts)
+│   │   │   ├── user_repository.go   # User data contracts
+│   │   │   ├── manga_repository.go  # Manga data contracts
+│   │   │   ├── auth_service.go      # Auth business contracts
+│   │   │   └── manga_service.go     # Manga business contracts
+│   │   └── services/            # 🔧 Business Logic Implementation
+│   │       ├── user_service.go  # User business logic
+│   │       ├── auth_service.go  # Authentication logic
+│   │       └── manga_service.go # Manga business logic
+│   ├── adapters/                # 🔌 Infrastructure Layer
+│   │   ├── database/            # 🗄️ Database Infrastructure
+│   │   │   ├── connection.go    # Database connection setup
+│   │   │   └── repositories/    # Repository implementations
+│   │   │       ├── user_repository.go   # User data access
+│   │   │       └── manga_repository.go  # Manga data access
+│   │   └── http/                # 🌐 HTTP Infrastructure
+│   │       ├── handlers/        # HTTP request handlers
+│   │       │   ├── user_handler.go  # User HTTP handlers
+│   │       │   ├── auth_handler.go  # Auth HTTP handlers
+│   │       │   └── manga_handler.go # Manga HTTP handlers
+│   │       ├── middleware/      # HTTP middleware
+│   │       │   └── auth_middleware.go # JWT authentication
+│   │       └── routes/          # Route configuration
+│   │           └── routes.go    # All route definitions
+│   ├── config/                  # ⚙️ Configuration management
+│   │   └── config.go            # Environment config loading
+│   └── utils/                   # 🔧 Shared utilities
+│       ├── jwt.go               # JWT token utilities
+│       └── password.go          # Password hashing utilities
+├── pkg/                         # 📦 Public packages (reusable)
+│   ├── response/                # HTTP response helpers
+│   └── validator/               # Input validation utilities
+├── .env                         # 🔒 Environment variables (ignored)
+├── .gitignore                   # 📋 Git ignore patterns
+└── go.mod                       # 📦 Go module definition
 ```
 
 ## 🌐 **Available APIs**
@@ -61,26 +102,65 @@ my-backend/
 
 ## ⚙️ **Configuration**
 
+### **Environment Variables**
 ```bash
-# Required Environment Variables
+# Server Configuration
 PORT=8080
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASS=password
-DB_NAME=mydb
-JWT_SECRET=your-secret-key
+
+# Database Configuration (PostgreSQL)
+DB_CONNECTION_STRING=postgres://user:password@localhost:5432/dbname?sslmode=disable
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key
+
+# Optional: Individual DB settings (if not using connection string)
+# DB_HOST=localhost
+# DB_PORT=5432
+# DB_USER=postgres
+# DB_PASS=password
+# DB_NAME=mydb
 ```
+
+### **Configuration Loading**
+- Environment variables loaded with fallback defaults
+- `.env` file support for development
+- `config.LoadConfig()` centralizes configuration management
+- JWT secret validation with warnings for insecure defaults
 
 ## 🎯 **Key Features**
 
 ✅ **Clean Architecture** - Separation of concerns, testable code  
+✅ **Dependency Injection** - Proper DI container in main.go  
 ✅ **JWT Authentication** - Secure user authentication  
 ✅ **CRUD Operations** - Full Create, Read, Update, Delete support  
-✅ **Pagination System** - Efficient data loading  
+✅ **Pagination System** - Efficient data loading with metadata  
 ✅ **Input Validation** - Request validation with error handling  
 ✅ **Database Integration** - PostgreSQL with GORM  
 ✅ **Middleware Support** - Authentication, CORS, logging  
+✅ **Error Handling** - Consistent error responses  
+✅ **Build Management** - Proper binary management with .gitignore
+
+## 🏗️ **Clean Architecture Benefits**
+
+### **🎯 Business Logic Protection**
+- **Domain entities** contain business rules and validation
+- **Services** implement use cases without infrastructure dependencies
+- **Ports (interfaces)** define contracts between layers
+
+### **🔧 Infrastructure Flexibility**
+- **Database** can be swapped (PostgreSQL → MySQL → MongoDB)
+- **HTTP framework** can be changed (Fiber → Gin → Chi)
+- **Authentication** method can be modified (JWT → OAuth → Session)
+
+### **🧪 Testing Excellence**
+- **Unit tests** for business logic (services, entities)
+- **Integration tests** for adapters (repositories, handlers)
+- **Mocking** made easy with interface-based design
+
+### **👥 Team Collaboration**
+- **Clear boundaries** between team responsibilities
+- **Parallel development** - frontend, backend, database teams
+- **Code reviews** focused on specific layers  
 
 ## 📚 **Documentation**
 
@@ -92,6 +172,7 @@ JWT_SECRET=your-secret-key
 
 ## 🧪 **Response Format**
 
+### **Success Response**
 ```json
 {
   "success": true,
@@ -100,12 +181,113 @@ JWT_SECRET=your-secret-key
 }
 ```
 
+### **Error Response**
+```json
+{
+  "success": false,
+  "error": "Error message"
+}
+```
+
+### **Paginated Response**
+```json
+{
+  "success": true,
+  "message": "Paginated data retrieved successfully",
+  "data": {
+    "data": [ ... ],
+    "pagination": {
+      "current_page": 1,
+      "page_size": 10,
+      "total_items": 25,
+      "total_pages": 3,
+      "has_next_page": true,
+      "has_prev_page": false
+    }
+  }
+}
+```
+
+## 🛠️ **Development & Deployment**
+
+### **Local Development**
+```bash
+# Setup
+go mod tidy
+cp .env.example .env
+
+# Development build
+go build -o bin/server ./cmd/server
+
+# Run with auto-reload (using air - optional)
+air
+
+# Testing
+go test ./... -v
+
+# Check architecture compliance
+go mod graph | grep internal  # Should not import external deps
+```
+
+### **Build & Deployment**
+```bash
+# Production build
+CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bin/server ./cmd/server
+
+# Docker build (using provided Dockerfile)
+docker build -t my-backend .
+docker run -p 8080:8080 --env-file .env my-backend
+
+# Binary deployment
+./bin/server  # Ensure environment variables are set
+```
+
+### **File Management**
+- **Binary files** are built to `bin/` directory
+- **`.gitignore`** properly excludes build artifacts
+- **`bin/.gitkeep`** maintains directory structure in git
+- **Environment files** (`.env`) are never committed
+
 ## 📝 **Next Steps**
 
-1. **For API Usage**: Start with [Pagination Guide](PAGINATION_GUIDE.md)
-2. **For Development**: Follow [How to Add New API](HOW_TO_ADD_NEW_API.md)  
-3. **For Architecture**: Study [Clean Architecture Flow](CLEAN_ARCHITECTURE_FLOW.md)
+### **🚀 For API Usage**
+1. **Start with**: [Pagination Guide](PAGINATION_GUIDE.md) - Learn API endpoints
+2. **Test endpoints**: Use the provided curl examples
+3. **Frontend integration**: Use JWT tokens for authentication
+
+### **👨‍💻 For Development**
+1. **Add new features**: Follow [How to Add New API](HOW_TO_ADD_NEW_API.md)
+2. **Understand architecture**: Study [Clean Architecture Flow](CLEAN_ARCHITECTURE_FLOW.md)
+3. **Write tests**: Create unit tests for business logic
+4. **Code review**: Follow layer separation principles
+
+### **🏗️ For Architecture**
+1. **Study patterns**: Understand dependency injection flow
+2. **Extend domains**: Add new entities following existing patterns
+3. **Performance**: Add caching layers at adapter level
+4. **Monitoring**: Add logging and metrics
+
+## 📊 **Project Status**
+
+| **Component** | **Status** | **Description** |
+|---------------|------------|-----------------|
+| 🏗️ **Architecture** | ✅ **Complete** | Clean Architecture implemented |
+| 🔐 **Authentication** | ✅ **Complete** | JWT-based auth with middleware |
+| 📚 **CRUD Operations** | ✅ **Complete** | Users & Manga management |
+| 📄 **Pagination** | ✅ **Complete** | Efficient pagination system |
+| 🧪 **Testing** | ⚠️ **Partial** | Manual testing complete, unit tests needed |
+| 📝 **Documentation** | ✅ **Complete** | Comprehensive guides available |
+| 🚀 **Deployment** | ✅ **Ready** | Docker & binary deployment |
+
+## 🎯 **Architecture Quality**
+
+- **✅ SOLID Principles** - Applied throughout codebase
+- **✅ Dependency Inversion** - Business logic independent of infrastructure  
+- **✅ Separation of Concerns** - Clear layer boundaries
+- **✅ Testability** - Interface-based design for easy mocking
+- **✅ Maintainability** - Consistent patterns and structure
+- **✅ Scalability** - Ready for team growth and feature expansion
 
 ---
 
-🚀 **Ready to use!** This backend provides a solid foundation for building scalable REST APIs with clean, maintainable code. 
+🚀 **Production Ready!** This backend provides a robust foundation for building scalable REST APIs with clean, maintainable code following industry best practices. 
