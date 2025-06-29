@@ -3,8 +3,8 @@ package database
 import (
 	"fmt"
 	"log"
-	"os"
 
+	"github.com/thitiphongD/my-backend/internal/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -12,11 +12,19 @@ import (
 
 var DB *gorm.DB
 
-// ConnectDatabase initializes database connection using connection string
+// ConnectDatabase initializes database connection using config
 func ConnectDatabase() {
-	connectionString := os.Getenv("DB_CONNECTION_STRING")
-	if connectionString == "" {
-		log.Fatal("DB_CONNECTION_STRING is not set in the .env file")
+	cfg := config.LoadConfig()
+
+	// สร้าง connection string จาก config parameters
+	connectionString := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=Asia/Bangkok",
+		cfg.DBHost, cfg.DBUser, cfg.DBPass, cfg.DBName, cfg.DBPort, cfg.DBSSLMode,
+	)
+
+	// เพิ่ม channel_binding หากมีการกำหนดค่า
+	if cfg.DBChannelBinding != "" {
+		connectionString += fmt.Sprintf(" channel_binding=%s", cfg.DBChannelBinding)
 	}
 
 	database, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{

@@ -9,13 +9,15 @@ import (
 
 // Config holds all configuration for the application
 type Config struct {
-	Port      string
-	DBHost    string
-	DBPort    string
-	DBUser    string
-	DBPass    string
-	DBName    string
-	JWTSecret string
+	Port             string
+	DBHost           string
+	DBPort           string
+	DBUser           string
+	DBPass           string
+	DBName           string
+	DBSSLMode        string
+	DBChannelBinding string
+	JWTSecret        string
 }
 
 // LoadConfig loads configuration from environment variables
@@ -26,13 +28,15 @@ func LoadConfig() *Config {
 	}
 
 	config := &Config{
-		Port:      getEnv("PORT", "8080"),
-		DBHost:    getEnv("DB_HOST", "localhost"),
-		DBPort:    getEnv("DB_PORT", "5432"),
-		DBUser:    getEnv("DB_USER", "postgres"),
-		DBPass:    getEnv("DB_PASS", "password"),
-		DBName:    getEnv("DB_NAME", "mydb"),
-		JWTSecret: getEnv("JWT_SECRET", "your-secret-key"),
+		Port:             getEnv("PORT", "8080"),
+		DBHost:           getEnv("DB_HOST", "localhost"),
+		DBPort:           getEnv("DB_PORT", "5432"),
+		DBUser:           getEnv("DB_USER", "postgres"),
+		DBPass:           getEnv("DB_PASS", "password"),
+		DBName:           getEnv("DB_NAME", "mydb"),
+		DBSSLMode:        getEnv("DB_SSL_MODE", "disable"),
+		DBChannelBinding: getEnv("DB_CHANNEL_BINDING", ""),
+		JWTSecret:        getEnv("JWT_SECRET", "your-secret-key"),
 	}
 
 	// Validate required configuration
