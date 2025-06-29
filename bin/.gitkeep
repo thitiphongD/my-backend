@@ -1,0 +1,2 @@
+# This file ensures that the bin/ directory is tracked by git
+# Binary files will be ignored by .gitignore 
